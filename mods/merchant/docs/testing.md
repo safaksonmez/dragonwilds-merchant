@@ -8,6 +8,7 @@
 - Storefront binding checks require the provider bootstrap row and mandatory Items array.
 - Packaging checks allowed paths, JSON, and ZIP entry/source SHA256 equality. No DLLs, game assets, saves, dumps, local paths, development grants, or runtime discovery journals enter the archive.
 - Local deployment backs up the add-on and verifies installed file hashes. This is not a Vortex deployment test.
+- Native content checks validate 572 product/recipe references, matching buy/sell amounts, unique row membership, and discovery-safe defaults. The Lua flow regression throws on any attempted DataTable write or recipe construction, tests read-only row/recipe validation, and verifies availability revocation.
 
 ```powershell
 python -m pip install --target mods/merchant/local/python -r mods/merchant/requirements-dev.txt
@@ -26,6 +27,8 @@ The atomic inventory backend in the domain tests is a test double. Production us
 | dev.2 normal launch, 15:35–15:37 | NPC/vendor definitions loaded=4, errors=0; tester found the merchant. Catalog failed because a TArray callback index was treated as an output item. |
 | dev.3, 15:42–15:48 | TArray iteration advanced, but catalog generation failed with invalid_power_level. The entire catalog was blocked by an item outside the assumed price range. Actual offending raw values were not captured. |
 | dev.4 | Signed-level pricing and per-product rejection; local checks and full Lua flow pass. In-game confirmation is pending. |
+| dev.4 follow-up, 16:05–16:08 | 534 recipes reached native unlocks; Lua AddRow produced an empty/default row. A detached-row write diagnostic crashed UE4SS. Diagnostic disabled; no further detached-row mutation permitted. |
+| 0.3.0-dev.1 | RuneSchema-native row/recipe generation and read-only Lua catalog integration; local checks pass, game load/menu/trade verification pending. |
 
 ## Next gameplay checks
 

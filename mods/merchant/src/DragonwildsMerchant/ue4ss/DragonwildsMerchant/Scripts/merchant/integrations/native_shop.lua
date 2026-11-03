@@ -1,7 +1,6 @@
 local Catalog = require("merchant.services.native_catalog")
-local Identity = require("merchant.domain.identity")
+local Content = require("merchant.data.native_content")
 local Store = require("merchant.integrations.discovery_store")
-local Shop = require("merchant.ui.shop")
 local V = require("merchant.domain.values")
 local Native = {}
 
@@ -53,7 +52,10 @@ function Native.controllers(world_id)
 end
 
 local function own_recipe(recipe)
-    return Native.valid(recipe) and Native.path(recipe):match("^/Engine/Transient%.DWM_Buy_%x+$") ~= nil
+    if not Native.valid(recipe) then return false end
+    local path = Native.path(recipe)
+    return path:match("^/Game/RuneSchema/DragonwildsMerchant/Recipes/RSRecipe_DWM_Buy_") ~= nil
+        or path:match("^/Engine/Transient%.DWM_Buy_%x+$") ~= nil
 end
 
 function Native.is_merchant(station)
@@ -65,18 +67,11 @@ function Native.is_merchant(station)
 end
 
 function Native.bind(station)
+    -- RuneSchema VendorProperties binds this handle natively. Never write a
+    -- detached UScriptStruct or rebuild a DataTable through this Lua binding.
     assert(Native.is_merchant(station), "not an owned merchant station")
-    local dt = asset(Native.table_path)
-    assert(dt:FindRow(Native.row_name), "dynamic merchant row is not ready")
-    station.CraftingDataRowHandle = {DataTable = dt, RowName = FName(Native.row_name)}
-    assert(text(station.CraftingDataRowHandle.RowName) == Native.row_name, "merchant row bind failed")
-end
-
-local function blank_row()
-    return {
-        DisplayNameOverride = FText("Coin Merchant"), LabeledRecipes = {}, SellableItems = {},
-        bIsVendor = true, bHaveRepairOption = false, bHaveMasterworkOption = false,
-    }
+    assert(text(station.CraftingDataRowHandle.RowName) == Native.row_name,
+        "RuneSchema native merchant row binding is not ready")
 end
 
 local function check_distance(controller, station, limit)
@@ -86,11 +81,6 @@ local function check_distance(controller, station, limit)
     local a, b = owner:K2_GetActorLocation(), controller.Pawn:K2_GetActorLocation()
     local distance = (a.X - b.X)^2 + (a.Y - b.Y)^2 + (a.Z - b.Z)^2
     assert(distance <= limit^2, "merchant out of range")
-end
-
-function Native.clear()
-    local dt = StaticFindObject(Native.table_path)
-    if Native.valid(dt) then dt:AddRow(Native.row_name, blank_row()) end
 end
 
 local function read_items()
@@ -155,38 +145,23 @@ local function remove_own_unlocks(progress)
     end
 end
 
-local function make_recipe(entry, item, coin, progress)
-    local name, persistence = Identity.recipe(entry.id)
-    local path = "/Engine/Transient." .. name
-    local recipe = StaticFindObject(path)
-    if Native.valid(recipe) then
-        assert(text(recipe.InternalName) == name and text(recipe.PersistenceID) == persistence,
-            "recipe ownership collision: " .. path)
-    else
-        local class = asset("/Script/Dominion.RecipeData")
-        local outer = asset("/Engine/Transient")
-        recipe = StaticConstructObject(class, outer, FName(name), 0x40, 0, false, false)
-        assert(Native.valid(recipe), "failed to construct native RecipeData")
-        recipe.InternalName, recipe.PersistenceID = name, persistence
+function Native.clear()
+    -- Fail closed by revoking only our shop availability. The static native row
+    -- is never mutated from Lua; ordinary learned recipes remain untouched.
+    for _, controller in ipairs(Native.controllers()) do
+        local progress = controller:GetProgressComponent()
+        if Native.valid(progress) then remove_own_unlocks(progress) end
     end
-    -- These two strong native sets also keep transient recipe UObjects alive.
-    -- Add the persistence exclusion marker BEFORE the visible unlock.
-    progress.RecipesUnlockedThatShouldNotPersist:Add(recipe)
-    progress.RecipesUnlocked:Add(recipe)
-    recipe.ItemsConsumed = {{ItemData = coin, Count = entry.buy_price}}
-    recipe.ItemsCreated = {{ItemData = item, Count = 1}}
-    recipe.ExtraItemsCreated = {}
-    recipe.bIgnoreAutomaticUnlocks, recipe.bIgnoreNotification = true, true
-    recipe.ChanceToProduceExtraItems, recipe.SkillXPAwardedOnCraft = 0, 0
-    recipe.CraftTime, recipe.MinProcessingTime, recipe.MaxProcessingTime = 0, 0, 0
-    recipe.CraftQuantityMultiplier = 1
-    assert(progress.RecipesUnlocked:Contains(recipe)
-        and progress.RecipesUnlockedThatShouldNotPersist:Contains(recipe), "native unlock readback failed")
-    return recipe
 end
 
--- Called synchronously on the game thread before native menu entry. We never
--- construct a station component or write the engine's OptionalProperty cache.
+local function verify_recipe(recipe, entry)
+    assert(#recipe.ItemsConsumed == 1 and #recipe.ItemsCreated == 1, "native recipe item amounts missing")
+    assert(Native.path(recipe.ItemsConsumed[1].ItemData) == Native.coin_path
+        and recipe.ItemsConsumed[1].Count == entry.buy_price
+        and Native.path(recipe.ItemsCreated[1].ItemData) == entry.path
+        and recipe.ItemsCreated[1].Count == 1, "native recipe did not retain its authored price/output")
+end
+
 function Native.refresh(root, controller, config)
     assert(controller:HasAuthority(), "authority required; client stock synchronization is not yet supported")
     local world_id = Native.world_id(controller)
@@ -195,40 +170,41 @@ function Native.refresh(root, controller, config)
     local facts, objects = read_items()
     local discovered = Store.merge(root, world_id, discoveries(Native.controllers(world_id), facts, objects))
     local entries, rejected = Catalog.build(facts, discovered, config.economy)
-    for index = 1, math.min(5, #rejected) do
-        local entry = rejected[index]
-        print("[DragonwildsMerchant] Product excluded: " .. entry.path .. "; " .. entry.reason
-            .. "; PowerLevel=" .. entry.power_level .. "\n")
-    end
+    local row = dt:FindRow(Native.row_name)
+    assert(row and row.bIsVendor and #row.SellableItems == Content.product_count,
+        "RuneSchema native merchant row is missing or incomplete")
+    local count = 0
+    row.LabeledRecipes:ForEach(function(_, group) count = count + #group:get().Collection end)
+    assert(count == Content.product_count, "RuneSchema native merchant categories are incomplete")
     local progress = controller:GetProgressComponent()
     remove_own_unlocks(progress)
-    local row, approved = blank_row(), {}
-    row.DisplayNameOverride = FText(Shop.labels(config.locale).merchant)
-    local system = asset("/Script/Engine.Default__KismetSystemLibrary")
-    for index, entry in ipairs(entries) do
-        local recipe = make_recipe(entry, objects[entry.id], coin, progress)
-        local page = math.floor((index - 1) / 100) + 1
-        row.LabeledRecipes[page] = row.LabeledRecipes[page] or {
-            Label = FText(Shop.labels(config.locale).items .. page), Collection = {},
-        }
-        local collection = row.LabeledRecipes[page].Collection
-        -- SoftObjectProperty accepts TSoftObjectPtr userdata, not a Lua path
-        -- table. The reflected engine conversion provides the correct UE5 layout.
-        collection[#collection + 1] = system:Conv_ObjectToSoftObjectReference(recipe)
-        if entry.sellable then
-            row.SellableItems[#row.SellableItems + 1] = {
-                ItemData = objects[entry.id], Currency = coin, CurrencyPerItem = entry.sell_price,
-                ReputationPerItem = 0,
-            }
+    local approved, total, sellable = {}, 0, 0
+    for _, entry in ipairs(entries) do
+        local definition = Content.by_item[entry.path]
+        if definition then
+            assert(entry.buy_price == definition.buy_price and entry.sell_price == definition.sell_price,
+                "economy settings differ from native content; regenerate recipes/row before changing prices")
+            local recipe = asset(definition.path)
+            assert(own_recipe(recipe) and text(recipe.PersistenceID) == definition.id, "native recipe identity mismatch")
+            verify_recipe(recipe, entry)
+            -- The persistence exclusion marker must be in place before visible
+            -- availability. Native recipe assets and row data are read-only here.
+            progress.RecipesUnlockedThatShouldNotPersist:Add(recipe)
+            progress.RecipesUnlocked:Add(recipe)
+            assert(progress.RecipesUnlocked:Contains(recipe)
+                and progress.RecipesUnlockedThatShouldNotPersist:Contains(recipe), "native unlock readback failed")
+            approved[Native.path(recipe)] = entry
+            total = total + 1
+            if entry.sellable then sellable = sellable + 1 end
+        else
+            rejected[#rejected + 1] = {path=entry.path, reason="not_in_verified_native_roster"}
         end
-        approved[Native.path(recipe)] = entry
     end
-    dt:AddRow(Native.row_name, row)
-    local readback = dt:FindRow(Native.row_name)
-    assert(readback and #readback.LabeledRecipes == #row.LabeledRecipes
-        and #readback.SellableItems == #row.SellableItems, "merchant row readback failed")
-    return {world_id = world_id, approved = approved, entries = #entries, sellable = #row.SellableItems,
-        rejected = #rejected}
+    for index = 1, math.min(5, #rejected) do
+        local entry = rejected[index]
+        print("[DragonwildsMerchant] Product excluded: " .. entry.path .. "; " .. entry.reason .. "\n")
+    end
+    return {world_id=world_id, approved=approved, entries=total, sellable=sellable, rejected=#rejected}
 end
 
 -- Native inventory code remains the sole owner of consumption/output, capacity

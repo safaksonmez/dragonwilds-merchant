@@ -30,6 +30,12 @@ Evidence is kept in ignored local world/object dumps and logs, never distributed
 
 ## Corrected integration assumptions
 
+### Installed Lua row writer failure and native-content migration
+
+In dev.4, 534 shop recipes reached the native unlock set, but the catalog failed its row readback. The F9 diagnostic observed the Lua-created row as `bIsVendor=false`, groups=0, sales=0, despite nonempty AddRow input; the provider-created bootstrap row correctly reported vendor=true. Direct detached-row assignment then crashed with access violation `0xc0000005` in `UE4SS.dll+0xc6e189` on 2026-11-03 at 16:08. The diagnostic command was replaced with a no-op. No further detached-row mutation is used.
+
+0.3.0-dev.1 moves row creation and exact item amounts to the supported RuneSchema `/raw` and `/recipes` loaders. The 572 source item paths were filtered from the world reflection dump by ItemData class inheritance, excluding CDOs and unrelated asset classes. Generated recipe paths follow RuneSchema's `RuntimeRecipePath` algorithm in source commit 5eb80dfe. `Unlock: false` and `bIgnoreAutomaticUnlocks: true` leave discovery availability under Lua control. The provider binds the row via native VendorProperties; Lua only reads it. Prices are fixed at 10/4 for the native-content prototype. This replacement is not yet an observed gameplay pass.
+
 dev.3 progressed beyond discovery iteration but reported `invalid_power_level` during catalog pricing in the 15:42–15:48 session. The 0–100 pricing bound was an implementation assumption, not a reflected ItemData constraint. The dump identifies ItemData.PowerLevel as an IntProperty. Actual offending raw values were not captured before the tester closed the game. dev.4 prices signed native int32 levels with an explicit nonnegative economic tier, performs overflow checks, and excludes malformed/overflowing products individually. It logs product path/value/reason for remaining exclusions. This is not a claim that all future native catalog stages have passed.
 
 The dev.1 normal launch loaded the companion successfully, but RuneSchema rejected the vendor JSON and disabled the NPC with a missing-store error. LoadVendors/AddStore require Items, even for an empty store. dev.2 restores `Items: []` and a provider-owned `DWM_CoinMerchant_bootstrap_v1` row. Lua generates `DWM_CoinMerchant_v1` separately and binds the existing station before menu entry. The new cache/binding behavior still requires native verification.
@@ -55,6 +61,7 @@ Research date: 2026-11-03. Source research is not a local gameplay pass.
 
 - [RuneSchema 0.8.0.3](https://github.com/gh0sted5456-us/RuneSchema/releases/tag/0.8.0.3)
 - [RuneSchema Lua companions](https://github.com/gh0sted5456-us/RuneSchema/blob/main/docs/UE4SS-LUA-COMPANIONS.md)
+- [Raw row loader](https://github.com/gh0sted5456-us/RuneSchema/blob/main/docs/reference/loaders/raw.md), [recipe loader contract](https://github.com/gh0sted5456-us/RuneSchema/blob/main/docs/reference/loaders/recipes.md): native row construction, recipe identity/amount verification, and separate placement/unlock policies.
 - [NPC loader](https://github.com/gh0sted5456-us/RuneSchema/blob/5eb80dfe2e12512b60850b3eeb1fedb4e95c69dd/source/raw/src/Loader/DragonWildsNpcLoader.cpp), [NpcCatalog](https://github.com/gh0sted5456-us/RuneSchema/blob/5eb80dfe2e12512b60850b3eeb1fedb4e95c69dd/source/raw/include/Loader/NpcCatalog.h), [recipe loader](https://github.com/gh0sted5456-us/RuneSchema/blob/5eb80dfe2e12512b60850b3eeb1fedb4e95c69dd/source/raw/src/Loader/DragonWildsRecipeModLoader.cpp)
 - [Vortex package rules](https://www.nexusmods.com/site/mods/1273)
 - [UE4SS UObject](https://docs.ue4ss.com/dev/lua-api/classes/uobject.html), [TArray](https://docs.ue4ss.com/dev/lua-api/classes/tarray.html), [TSet](https://docs.ue4ss.com/dev/lua-api/classes/tset.html), [UDataTable](https://docs.ue4ss.com/dev/lua-api/classes/udatatable.html), [RegisterHook](https://docs.ue4ss.com/dev/lua-api/global-functions/registerhook.html)

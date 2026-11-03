@@ -43,6 +43,7 @@ mods/<slug>/
 - Dünya/oyuncu hazır olmadan oyun nesnesine erişme. Nesne geçerliliğini kontrol et; world değişiminde eski UObject referanslarını taşıma. Oyun mutasyonlarını doğrulanmış game-thread mekanizmasıyla yap.
 - Her frame kapsamlı nesne taraması veya sınırsız polling yapma. Hook/timer eklediğinde kapanış, tekrar yükleme ve çift kayıt davranışını düşün.
 - Eksik API veya uyumsuz build durumunda mod anlaşılır bir log ile işlemi reddetmeli; yarım alışveriş veya sessiz kayıt değişikliği yapmamalı.
+- Kurulu UE4SS build'inde Lua `UDataTable:AddRow(table)` alanları boş kaldı ve detached `FindRow` struct yazımı native çökme üretti. Bu yolu/probu tekrar kullanma. Tüccarın satır ve tarifleri RuneSchema `raw`/`recipes` yükleyicileriyle oluşturulur; Lua yalnızca okur ve keşif kilitlerini yönetir.
 - Satın alma/satma için miktar, bakiye, stok, envanter kapasitesi ve çift istek denetimi gerekir. Para ve eşya değişimi atomik olmalı veya güvenilir geri alma sağlamalı.
 - Tek oyunculu, host, katılan istemci ve dedicated server ayrı doğrulanır. Envanter/para işlemlerinde otoriteyi host/server belirlemeli; istemcinin gönderdiği fiyat veya bakiyeye güvenme.
 

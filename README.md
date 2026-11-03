@@ -2,7 +2,7 @@
 
 An experimental **Coin merchant mod for RuneScape: Dragonwilds**, built with RuneSchema and a UE4SS Lua companion. The intended distribution channel is Nexus Mods, with a Vortex-compatible installation archive.
 
-**Current version: `0.2.0-dev.4`. This is a development prototype, not a verified gameplay release.** The merchant has appeared in game and the separate Coin item persists across reloads. The latest dynamic catalog fix is awaiting in-game verification. Buying, selling, transaction failure behavior, animations, and stall presentation still require testing. Remote co-op client catalog synchronization is not implemented.
+**Current version: `0.3.0-dev.1`. This is a development prototype, not a verified gameplay release.** The merchant has appeared in game and the separate Coin item persists across reloads. The latest dynamic catalog fix is awaiting in-game verification. Buying, selling, transaction failure behavior, animations, and stall presentation still require testing. Remote co-op client catalog synchronization is not implemented.
 
 ## Intended behavior
 
@@ -10,7 +10,8 @@ An experimental **Coin merchant mod for RuneScape: Dragonwilds**, built with Run
 - A separate inventory currency named **Coin**.
 - A catalog restricted to items already picked up or unlocked through learned recipes.
 - Discovery history shared across the authority's world participants and stored per world GUID.
-- Native merchant buying/selling, with server-owned prices and inventory checks.
+- Native-authored recipes and merchant rows, with Lua discovery gates and authority checks.
+- A verified 572-item native roster, currently priced at 10 Coin to buy / 4 Coin to sell.
 - A neutral NPC using existing game assets, an idle animation, and a small stall setup.
 
 ## Get started
@@ -23,7 +24,7 @@ python mods/merchant/scripts/test.py
 pwsh -NoProfile -File mods/merchant/scripts/package.ps1 -Force
 ```
 
-The install archive is generated at `mods/merchant/dist/DragonwildsMerchant-0.2.0-dev.4.zip`, with a SHA256 file. The GitHub source download is **not** a Vortex install archive.
+The install archive is generated at `mods/merchant/dist/DragonwildsMerchant-0.3.0-dev.1.zip`, with a SHA256 file. The GitHub source download is **not** a Vortex install archive.
 
 ## Repository layout
 

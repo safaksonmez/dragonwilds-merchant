@@ -44,6 +44,8 @@ end
 
 local globals = {"StaticFindObject", "LoadAsset", "FindAllOf", "StaticConstructObject", "FText", "FName"}
 local previous = {}; for _, name in ipairs(globals) do previous[name] = _G[name] end
+local Content = require("merchant.data.native_content")
+local old_content, old_count = Content.by_item, Content.product_count
 local old_merge = Store.merge
 local ok, problem = pcall(function()
     local registry, rows, items = {}, {}, {}
@@ -58,14 +60,24 @@ local ok, problem = pcall(function()
     coin.PersistenceID = string_value("o-67GWCBTUeTPasJ-o_1Sw")
     registry[Native.coin_path] = coin
     local dt = object(Native.table_path, "DataTable")
-    function dt:AddRow(name, row) rows[name] = row end
+    function dt:AddRow() error("Lua DataTable writes are forbidden") end
     function dt:FindRow(name) return rows[name] end
     registry[Native.table_path] = dt
-    registry["/Script/Dominion.RecipeData"] = object("/Script/Dominion.RecipeData", "Class")
-    registry["/Engine/Transient"] = object("/Engine/Transient", "Package")
-    local system = object("/Script/Engine.Default__KismetSystemLibrary", "KismetSystemLibrary")
-    function system:Conv_ObjectToSoftObjectReference(value) return parameter(value) end
-    registry["/Script/Engine.Default__KismetSystemLibrary"] = system
+    Content.by_item, Content.product_count = {}, 2
+    local collection = {}
+    for i = 1, 2 do
+        local name = "RSRecipe_DWM_Buy_test"..i
+        local path = "/Game/RuneSchema/DragonwildsMerchant/Recipes/"..name.."."..name
+        local recipe = object(path,"RecipeData")
+        recipe.PersistenceID = string_value(identities[i])
+        recipe.ItemsConsumed = array({{ItemData=coin,Count=10}})
+        recipe.ItemsCreated = array({{ItemData=items[i],Count=1}})
+        registry[path] = recipe
+        Content.by_item[Native.path(items[i])] = {path=path,id=identities[i],buy_price=10,sell_price=4}
+        collection[#collection+1] = parameter(recipe)
+    end
+    rows[Native.row_name] = {bIsVendor=true,
+        LabeledRecipes=array({{Collection=collection}}), SellableItems=array({{}, {}})}
 
     local learned = object("/Game/Gameplay/Test/LearnedRecipe.LearnedRecipe", "RecipeData")
     learned.ItemsCreated = array({{ItemData=items[2], Count=1}})
@@ -91,17 +103,7 @@ local ok, problem = pcall(function()
         if class == "ItemData" then return items end
         assert(class == "DominionPlayerController"); return {controller}
     end
-    _G.StaticConstructObject = function(_, _, name)
-        local recipe = object("/Engine/Transient."..name, "RecipeData")
-        -- Unreal FString property assignments are read back as FString userdata.
-        recipe = setmetatable(recipe, {__newindex=function(self, key, value)
-            if key == "PersistenceID" or key == "InternalName" then value = string_value(value) end
-            rawset(self, key, value)
-        end})
-        registry[Native.path(recipe)] = recipe
-        return recipe
-    end
-    _G.FText, _G.FName = string_value, function(value) return value end
+    _G.StaticConstructObject = function() error("Lua recipe construction is forbidden") end
     Store.merge = function(_, world_id, discovered)
         assert(world_id == "00000001000000020000000300000004")
         assert(discovered[identities[1]] and discovered[identities[2]])
@@ -128,8 +130,14 @@ local ok, problem = pcall(function()
     assert(not progress.RecipesUnlocked:Contains(old_shop))
     -- Opening again must reuse owned recipes without duplicating offers.
     assert(Native.refresh("unused-test-root", controller, config).entries == 2)
+    Native.clear()
+    for path in pairs(result.approved) do
+        assert(not progress.RecipesUnlocked:Contains(registry[path]))
+    end
+    assert(progress.RecipesUnlocked:Contains(learned))
 end)
 for _, name in ipairs(globals) do _G[name] = previous[name] end
 Store.merge = old_merge
+Content.by_item, Content.product_count = old_content, old_count
 assert(ok, problem)
-print("PASS full Lua catalog flow: pickup + learned outputs, hidden-item gate, transient unlocks, native row, reopen")
+print("PASS full Lua catalog flow: pickup + learned outputs, hidden-item gate, transient unlocks, read-only native row, reopen, revoke; forbidden Lua writes guarded")

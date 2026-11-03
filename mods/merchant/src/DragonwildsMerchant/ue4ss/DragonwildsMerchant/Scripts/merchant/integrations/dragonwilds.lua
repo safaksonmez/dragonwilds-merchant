@@ -84,7 +84,10 @@ function Dragonwilds.initialize(config, context)
             local ready = refresh(controller_param:get())
             if ready then
                 local ok, problem = pcall(Native.bind, station)
-                if not ok then ready = false; snapshot = nil; log("Merchant binding blocked: " .. tostring(problem)) end
+                if not ok then
+                    ready = false; snapshot = nil; pcall(Native.clear)
+                    log("Merchant binding blocked: " .. tostring(problem))
+                end
             end
             if not ready then
                 -- Only our station is affected. Do not touch OptionalProperty.

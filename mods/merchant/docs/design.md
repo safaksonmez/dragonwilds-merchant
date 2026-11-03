@@ -12,19 +12,17 @@
 
 ## Runtime architecture
 
-RuneSchema supplies registered Coin, placement, visuals/animation, map markers, and interaction. The Lua companion reads discovery, persists a per-world journal, builds `DWM_CoinMerchant_v1`, and creates transient buy recipes in categories of up to 100 products.
+RuneSchema creates the Coin asset, merchant, native recipes, and merchant row. Generated `recipes/20-merchant-recipes.json` and `raw/20-merchant-row.json` reference 572 ItemData paths verified in build 248854. No cooked assets or per-player discovery data ship. Prices are fixed at 10 Coin buy / 4 Coin sell in this prototype; regenerate native content when changing prices.
 
-RuneSchema requires `Items: []` in the storefront record. The provider owns `DWM_CoinMerchant_bootstrap_v1`; Lua owns a different dynamic row and binds only its station before menu entry. Removing Items makes the store invalid and disables the merchant. Keeping the rows separate prevents provider refreshes from emptying the Lua-owned catalog.
+The provider creates an empty bootstrap row from mandatory `Items: []`. Its `VendorProperties.CraftingDataRowHandle` binds the component to the separate native-authored `DWM_CoinMerchant_v1` row. Lua validates this binding but never writes the detached row or its handle.
 
-Shop recipes enter `RecipesUnlockedThatShouldNotPersist` before `RecipesUnlocked`. The first is a persistence exclusion marker; the second controls visibility. Cleanup only targets the mod's exact transient recipe path/name pattern. Vanilla learned recipes remain untouched.
+Lua reads pickup/learned-recipe history, persists the world discovery union, verifies native recipe identities/prices/outputs, and marks only discovered products available. Native shop recipes enter `RecipesUnlockedThatShouldNotPersist` before `RecipesUnlocked`; fail-closed cleanup revokes only owned shop availability. Vanilla learned recipes remain untouched. The full native row does not by itself grant recipe unlocks (`Unlock: false`, `bIgnoreAutomaticUnlocks: true`).
 
-Coin balances belong to native inventory. Lua does not repeat consumption or output. Guards check authority, world, distance, quantity, server-owned recipe prices, balance, capacity, item ownership, protected items, and Coin overflow. Invalid purchases zero Count/BonusCount; invalid sales use the native invalid-slot sentinel. These rejection paths still need proof of zero mutation in game.
-
-Pricing uses `base_price + max(0, PowerLevel) * price_per_power_level`. ItemData's signed int32 level is not restricted to the 0–100 range used by player-level gates. Negative values receive the base price as an explicit economy policy. Malformed metadata or an overflowing quote excludes that product with diagnostics; it must not blank other discovered products. Invalid global economy settings still block catalog generation.
+Native InventoryController owns the exchange. Lua guards authority, world, distance, quantity, native prices, balance, capacity, ownership, protected items, and Coin overflow. Count=0 / invalid-slot rejection still requires native no-mutation regression testing.
 
 ## Lifecycle and boundaries
 
-Do not construct a station component or write its OptionalProperty cache. Use the existing RuneSchema-owned component. The native standalone/listen-host menu is expected to consume the updated row; the new binding/cache path still needs gameplay verification.
+Do not construct a station component, write a detached DataTable row, or write its OptionalProperty cache. Use the existing RuneSchema-owned component. The native standalone/listen-host menu is expected to consume the updated row; the new binding/cache path still needs gameplay verification.
 
 World journals use the real world GUID, never a character name. Clear catalog snapshots on travel and keep no persistent controller/pawn references. Startup catch-up is bounded; ready/pickup/learn events are coalesced after 500 ms. There is no per-frame full-object scan.
 

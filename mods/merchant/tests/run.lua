@@ -219,20 +219,21 @@ test("recipe names do not collide and persistence ids remain stable", function()
 end)
 
 local Native = require("merchant.integrations.native_shop")
+local scaled_economy = {base_price=10,price_per_power_level=2,sell_percent=40}
 test("signed native levels use base pricing below zero and scale above 100", function()
     for _, level in ipairs({-1, -2147483648, 0}) do
-        local quote = assert(Pricing.quote(level, config.economy))
+        local quote = assert(Pricing.quote(level, scaled_economy))
         equal(quote.buy_price,10); equal(quote.sell_price,4)
     end
-    equal(assert(Pricing.quote(150, config.economy)).buy_price,310)
+    equal(assert(Pricing.quote(150, scaled_economy)).buy_price,310)
 end)
 
 test("malformed levels and integer price overflow remain rejected", function()
     for _, level in ipairs({false, "1", 0.5, 0/0, math.huge, -math.huge, 2147483648, -2147483649}) do
-        local quote, reason = Pricing.quote(level, config.economy)
+        local quote, reason = Pricing.quote(level, scaled_economy)
         equal(quote,nil); equal(reason,"invalid_power_level")
     end
-    local quote, reason = Pricing.quote(V.MAX_INTEGER, config.economy)
+    local quote, reason = Pricing.quote(V.MAX_INTEGER, scaled_economy)
     equal(quote,nil); equal(reason,"price_overflow")
 end)
 
@@ -241,7 +242,7 @@ test("one unpriceable discovered item cannot blank the whole merchant", function
         {id=first_id,name="Resource",path="/test/resource",power_level=-1,sellable=true},
         {id=second_id,name="Malformed",path="/test/malformed",power_level="bad",sellable=true},
         {id="hidden",name="Hidden",path="/test/hidden",power_level=-1,sellable=true},
-    }, {[first_id]=true,[second_id]=true}, config.economy)
+    }, {[first_id]=true,[second_id]=true}, scaled_economy)
     equal(#entries,1); equal(entries[1].id,first_id)
     equal(#rejected,1); equal(rejected[1].id,second_id); equal(rejected[1].reason,"invalid_power_level")
 end)
@@ -250,7 +251,7 @@ test("overflowing product is excluded without unsafe fallback prices", function(
     local entries, rejected = NativeCatalog.build({
         {id=first_id,name="TooExpensive",path="/test/overflow",power_level=V.MAX_INTEGER,sellable=true},
         {id=second_id,name="Resource",path="/test/resource",power_level=0,sellable=true},
-    }, {[first_id]=true,[second_id]=true}, config.economy)
+    }, {[first_id]=true,[second_id]=true}, scaled_economy)
     equal(#entries,1); equal(entries[1].id,second_id)
     equal(#rejected,1); equal(rejected[1].reason,"price_overflow")
 end)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0-dev.1 — 2026-11-03
+
+- Replace Lua DataTable writes and runtime recipe construction with RuneSchema-authored `/raw` and `/recipes` content. The installed Lua binding left AddRow(table) fields empty; direct detached-row mutation crashed UE4SS during diagnosis. That diagnostic is disabled.
+- Generate 572 native buy recipes and matching sell records from verified build-248854 ItemData references. Only asset paths/definitions ship, never cooked game content or discovery histories.
+- Bind the native row through RuneSchema VendorProperties. Lua now reads the row/recipe fields, validates identities/amounts, and grants or revokes only discovered shop availability.
+- Use fixed prototype prices of 10 Coin buy / 4 Coin sell; regeneration is required to change native prices. Unlisted items and mismatched prices fail closed.
+- Add generated-content consistency checks and prohibit Lua AddRow/StaticConstructObject calls in runtime validation. Native recipe/row loading and gameplay still require an in-game regression pass.
+
 ## 0.2.0-dev.4 — 2026-11-03
 
 - Fix one discovered item outside the assumed 0–100 PowerLevel range aborting the entire merchant catalog with `invalid_power_level`.

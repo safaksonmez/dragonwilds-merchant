@@ -1,7 +1,7 @@
 {
     "id": "DragonwildsMerchant",
     "name": "Dragonwilds Merchant",
-    "version": "0.2.0-dev.4",
+    "version": "0.3.0-dev.1",
     "status": "native-integration-awaiting-game-regression",
     "game": "RuneScape: Dragonwilds",
     "runtime": "RuneSchema 0.8.0.3 + UE4SS Lua companion",

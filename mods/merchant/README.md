@@ -1,6 +1,6 @@
 # Dragonwilds Merchant
 
-**Version `0.2.0-dev.4` — experimental; gameplay regression testing is pending.**
+**Version `0.3.0-dev.1` â€” experimental; gameplay regression testing is pending.**
 
 The mod defines a fixed Coin Merchant in Bramblemead Valley, a marker on the M map, and an authored table/crates/barrel setup. It references the Wise Old Man model and idle animation. Coin has its own persistent ItemData identity, separate from Soul Fragments; its current appearance is inherited from the donor item.
 
@@ -8,9 +8,9 @@ The NPC's presence and Coin persistence have been observed in game. The newest c
 
 ## Catalog and economy
 
-On the authority, the catalog combines native pickup history and the outputs of learned recipes across current world participants. It excludes undiscovered items and the merchant's own transient recipes from discovery. History is stored per world GUID in `Data/discovery-v1-*.txt`. Only registered, currently loaded ItemData assets are considered; unloaded content is not guaranteed.
+On the authority, the catalog combines native pickup history and the outputs of learned recipes across current world participants. It excludes undiscovered items and the merchant's own transient recipes from discovery. History is stored per world GUID in `Data/discovery-v1-*.txt`. The native roster contains 572 ItemData references verified against build 248854. Unlisted/new-build or third-party items are excluded; the discovery gate still controls visibility.
 
-Discovered quest/bound products can appear for purchase; quest and player-bound items cannot be sold. Coin cannot be traded for itself. Stock is unlimited. Buy price is `10 + max(0, PowerLevel) * 2` Coin; sell price is 40% of the buy price, rounded down, minimum 1 Coin. Maximum trade quantity is 999; authority interaction distance is 600 Unreal centimeters.
+Discovered quest/bound products can appear for purchase; quest and player-bound items cannot be sold. Coin cannot be traded for itself. Stock is unlimited. This native-content prototype uses fixed prices: **10 Coin to buy one item, 4 Coin received per sold item**. Price changes require regenerating the native recipes/row and restarting; mismatched runtime settings are rejected. Maximum trade quantity is 999; authority interaction distance is 600 Unreal centimeters.
 
 Purchases use native recipes and sales use the native sell operation. Lua does not maintain a second wallet or repeat the native inventory exchange. Native capacity, atomicity, failure, and duplicate-request behavior still require gameplay tests. The separate domain-service tests do not prove those native guarantees.
 
@@ -38,6 +38,8 @@ DragonwildsMerchant/
   npc/10-bramblemead-merchant.json
   npc/20-bramblemead-stall.json
   vendors/10-coin-store.json
+  recipes/20-merchant-recipes.json
+  raw/20-merchant-row.json
   ue4ss/DragonwildsMerchant/
     Scripts/main.lua
     Scripts/merchant/...
@@ -60,7 +62,7 @@ Start the game normally; PowerShell is not required to launch it. Look for `[Dra
 
 ## Configure, update, and remove
 
-Settings live in `ue4ss/DragonwildsMerchant/Scripts/merchant/config.lua`. Authored NPC/stall positions are in the parent `npc/*.json` files. Restart after changing runtime files or definitions.
+Settings live in `ue4ss/DragonwildsMerchant/Scripts/merchant/config.lua`. Authored NPC/stall positions are in the parent `npc/*.json` files. Native content is generated from `assets/native-item-paths.json` with `scripts/build-native-content.py`; only verified asset references ship. The Lua runtime reads the native row and recipe fields and manages discovery availability; it never creates/writes DataTable rows or constructs recipe objects. Restart after changing runtime files or definitions.
 
 Before updating, back up the config and `ue4ss/DragonwildsMerchant/Data/discovery-v1-*.txt` journals. Config changes are not merged automatically; compare your settings with the new defaults. Runtime journals are not included in the install ZIP. Move the matching discovery journal when moving a world to another host.
 

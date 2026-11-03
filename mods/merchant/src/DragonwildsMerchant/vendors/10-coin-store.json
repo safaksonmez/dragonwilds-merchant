@@ -5,5 +5,11 @@
     "Masterworkable": false,
     "DataTable": "/Game/Gameplay/World/Vendors/DT_VendorDataTable.DT_VendorDataTable",
     "RowName": "DWM_CoinMerchant_bootstrap_v1",
-    "Items": []
+    "Items": [],
+    "VendorProperties": {
+        "CraftingDataRowHandle": {
+            "DataTable": "/Game/Gameplay/World/Vendors/DT_VendorDataTable.DT_VendorDataTable",
+            "RowName": "DWM_CoinMerchant_v1"
+        }
+    }
 }
