@@ -2,7 +2,7 @@
 
 An experimental **Coin merchant mod for RuneScape: Dragonwilds**, built with RuneSchema and a UE4SS Lua companion. The intended distribution channel is Nexus Mods, with a Vortex-compatible installation archive.
 
-**Current version: `0.3.0-dev.2`. This is a development prototype, not a verified gameplay release.** The merchant has appeared in game and the separate Coin item persists across reloads. The latest dynamic catalog fix is awaiting in-game verification. Buying, selling, transaction failure behavior, animations, and stall presentation still require testing. Remote co-op client catalog synchronization is not implemented.
+**Current version: `0.3.0-dev.2`. This is a development prototype, not a verified gameplay release.** The merchant, Coin persistence, discovered product visibility, and a purchase have been confirmed by the tester. Exact transaction amounts, selling, failure behavior, animations, and stall presentation still require testing. Remote co-op client catalog synchronization is not implemented.
 
 ## Intended behavior
 

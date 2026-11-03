@@ -10,7 +10,7 @@
 | Vortex / extension | Local versions unknown; no clean installation test |
 | NPC | Fixed merchant observed; new animation/decor presentation remains unverified |
 | Coin | Native grant and subsequent save persistence confirmed |
-| Dynamic shop | Latest catalog fix awaits gameplay verification; completed transactions unverified |
+| Dynamic shop | dev.2: 333 discovered offers on repeated opening; tester confirmed visibility and a purchase. Exact deltas and sales unverified |
 | Multiplayer | Remote client catalog synchronization is not implemented |
 
 ## Runtime findings

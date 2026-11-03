@@ -4,7 +4,7 @@
 
 The mod defines a fixed Coin Merchant in Bramblemead Valley, a marker on the M map, and an authored table/crates/barrel setup. It references the Wise Old Man model and idle animation. Coin has its own persistent ItemData identity, separate from Soul Fragments; its current appearance is inherited from the donor item.
 
-The NPC's presence and Coin persistence have been observed in game. The newest catalog fix, completed transactions, stall presentation, and animation playback are not yet verified. Remote co-op client catalog synchronization is not supported.
+The NPC's presence, Coin persistence, discovered product visibility, and a purchase have been confirmed by the tester. Exact transaction amounts, selling, stall presentation, and animation playback are not yet verified. Remote co-op client catalog synchronization is not supported.
 
 ## Catalog and economy
 
@@ -13,6 +13,8 @@ On the authority, the catalog combines native pickup history and the outputs of 
 Discovered quest/bound products can appear for purchase; quest and player-bound items cannot be sold. Coin cannot be traded for itself. Stock is unlimited. This native-content prototype uses fixed prices: **10 Coin to buy one item, 4 Coin received per sold item**. Price changes require regenerating the native recipes/row and restarting; mismatched runtime settings are rejected. Maximum trade quantity is 999; authority interaction distance is 600 Unreal centimeters.
 
 Purchases use native recipes and sales use the native sell operation. Lua does not maintain a second wallet or repeat the native inventory exchange. Native capacity, atomicity, failure, and duplicate-request behavior still require gameplay tests. The separate domain-service tests do not prove those native guarantees.
+
+With the shop open, use **Ctrl + left-click** on an item in your own bag to invoke native selling with default controls. The bag's currency badge displays the sale value. This is the game's existing merchant input, also described by the [Sell Anything author](https://www.curseforge.com/runescape-dragonwilds/ue4ss-mods/sell-anything); a completed sale through this mod still needs tester confirmation.
 
 ## Dependencies
 

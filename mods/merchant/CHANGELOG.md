@@ -6,6 +6,7 @@
 - Use RuneSchema's supported, game-thread file reload with a mod-owned generated patch, startup reset, bounded acknowledgement retries, and currency/price readback. This requires the documented shared `enableAutoReload=true` setting; no shared config enters the ZIP.
 - Explicitly disable Repair/Ascension on the native component as well as the row.
 - Add deferred-file lifecycle tests, startup dependency checks, and package checks preventing early hard Coin references. Native gameplay verification remains pending.
+- Follow-up validation: native reload completed, 333 discovered offers survived reopening, and the tester confirmed a purchase. Exact transaction deltas and selling remain unverified.
 
 ## 0.3.0-dev.1 — 2026-11-03
 
