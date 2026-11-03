@@ -1,0 +1,30 @@
+{
+    "Id": "bramblemead_merchant",
+    "Type": "AI",
+    "DisplayName": "Coin Merchant",
+    "VendorID": "coin_store",
+    "VisualSource": "/Game/Gameplay/NPCs/BP_BaseInteractableNPC.BP_BaseInteractableNPC_C",
+    "Mesh": "/Game/Art/Skeleton/NPC/Humanoid/WiseOldMan_01/SK_WiseOldMan_01.SK_WiseOldMan_01",
+    "IdleAnimation": "/Game/Art/Animation/NPC_WiseOldMan/Idle/A_WiseOldMan_Idle_01.A_WiseOldMan_Idle_01",
+    "Location": [
+        47000,
+        178000,
+        "$"
+    ],
+    "Rotation": {
+        "Pitch": 0,
+        "Yaw": 180,
+        "Roll": 0
+    },
+    "Scale": 1.0,
+    "EnableCollision": true,
+    "MeshCollision": "Native",
+    "Map": {
+        "Enabled": true,
+        "ShowName": true,
+        "Size": 32
+    },
+    "OverheadIcon": {
+        "Enabled": true
+    }
+}

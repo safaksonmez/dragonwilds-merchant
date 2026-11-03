@@ -1,0 +1,62 @@
+[
+    {
+        "Type": "Prop",
+        "NoInteract": true,
+        "HideName": true,
+        "EnableCollision": true,
+        "MeshCollision": "Native",
+        "Rotation": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+        },
+        "Id": "bramblemead_counter",
+        "Mesh": "/Game/Art/Env/Base_Building/Crafting_Stations/Fletching_Table/SM_FletchingTable_01.SM_FletchingTable_01",
+        "Location": [
+            46850,
+            178000,
+            "$"
+        ],
+        "Scale": 1.0
+    },
+    {
+        "Type": "Prop",
+        "NoInteract": true,
+        "HideName": true,
+        "EnableCollision": true,
+        "MeshCollision": "Native",
+        "Rotation": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+        },
+        "Id": "bramblemead_crates",
+        "Mesh": "/Game/Art/Env/Props/Env_Props/Garou_Props/Garou_Camp/Garou_Crates/SM_Garou_Crate_05_Bundle.SM_Garou_Crate_05_Bundle",
+        "Location": [
+            47020,
+            178250,
+            "$"
+        ],
+        "Scale": 0.7
+    },
+    {
+        "Type": "Prop",
+        "NoInteract": true,
+        "HideName": true,
+        "EnableCollision": true,
+        "MeshCollision": "Native",
+        "Rotation": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+        },
+        "Id": "bramblemead_barrel",
+        "Mesh": "/Game/Art/Env/Props/Env_Props/Garou_Props/Garou_Camp/Garou_Barrel/SM_Garou_Barrel_01.SM_Garou_Barrel_01",
+        "Location": [
+            47020,
+            177800,
+            "$"
+        ],
+        "Scale": 0.85
+    }
+]

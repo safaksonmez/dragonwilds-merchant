@@ -1,0 +1,29 @@
+# Generated packages and local development artifacts
+**/dist/
+**/build/
+**/local/
+**/dumps/
+**/backups/
+*.log
+*.sav
+*.dmp
+*.bak
+.env
+.env.*
+!.env.example
+.vs/
+.idea/
+Thumbs.db
+Desktop.ini
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+# Local game/loader binaries, mappings, and extracted cooked content
+*.dll
+*.exe
+*.pdb
+*.usmap
+*.pak
+*.ucas
+*.utoc

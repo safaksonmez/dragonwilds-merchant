@@ -1,0 +1,12 @@
+{
+    "/Game/RuneSchema/DragonwildsMerchant/Items/dwm_coin.dwm_coin": {
+        "$Clone": "/Game/Gameplay/Items/Resources/Currency/ITEM_Currency_SoulFragment.ITEM_Currency_SoulFragment",
+        "PersistenceID": "o-67GWCBTUeTPasJ-o_1Sw",
+        "InternalName": "dwm_coin",
+        "Name": "Coin",
+        "FlavourText": "Currency accepted by the Coin Merchant. Earn Coin by selling discovered goods.",
+        "MaxStackSize": 999999,
+        "Weight": 0.0,
+        "bBoundToPlayer": false
+    }
+}
