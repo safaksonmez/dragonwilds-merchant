@@ -16,4 +16,4 @@ if not ready then
     return
 end
 
-log("DragonwildsMerchant 0.2.0-dev.3 loaded; in-game regression testing required.")
+log("DragonwildsMerchant 0.2.0-dev.4 loaded; in-game regression testing required.")

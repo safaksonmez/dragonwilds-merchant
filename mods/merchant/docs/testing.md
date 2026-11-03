@@ -3,7 +3,7 @@
 ## Local checks
 
 - Lua 5.4 syntax validation through development-only Lupa 2.8 for runtime scripts and the reflection probe.
-- 28 local domain/adapter checks: discovery gates, world union/isolation, failed persistence, quantities/prices/balances, capacity, rollback contract, request replay, overflow, journal parsing, stable recipe identity, UObject path access, and storefront ownership.
+- 33 local domain/adapter checks: discovery gates, world union/isolation, failed persistence, quantities/prices/balances, capacity, rollback contract, request replay, overflow, journal parsing, stable recipe identity, UObject path access, storefront ownership, signed native levels, malformed values, and partial-catalog rejection.
 - A full Lua catalog-flow regression: pickup and learned outputs, no discovery from prior shop offers, transient unlock membership, native row contents, and reopening.
 - Storefront binding checks require the provider bootstrap row and mandatory Items array.
 - Packaging checks allowed paths, JSON, and ZIP entry/source SHA256 equality. No DLLs, game assets, saves, dumps, local paths, development grants, or runtime discovery journals enter the archive.
@@ -24,7 +24,8 @@ The atomic inventory backend in the domain tests is a test double. Production us
 | Registered Coin and native grant | Native add returned true and balance changed from 0 to 1000; later save reload persistence was confirmed by the tester. The development grant is outside the public runtime. |
 | dev.1 normal launch, 15:28–15:29 | Companion loaded, but the NPC was disabled by an invalid storefront; catalog access also called unsupported GetPathName. Failed gameplay test, unrelated to launch method. |
 | dev.2 normal launch, 15:35–15:37 | NPC/vendor definitions loaded=4, errors=0; tester found the merchant. Catalog failed because a TArray callback index was treated as an output item. |
-| dev.3 | Corrected TArray callback; local regressions passed. In-game confirmation is pending. |
+| dev.3, 15:42–15:48 | TArray iteration advanced, but catalog generation failed with invalid_power_level. The entire catalog was blocked by an item outside the assumed price range. Actual offending raw values were not captured. |
+| dev.4 | Signed-level pricing and per-product rejection; local checks and full Lua flow pass. In-game confirmation is pending. |
 
 ## Next gameplay checks
 

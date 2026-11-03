@@ -20,6 +20,8 @@ Shop recipes enter `RecipesUnlockedThatShouldNotPersist` before `RecipesUnlocked
 
 Coin balances belong to native inventory. Lua does not repeat consumption or output. Guards check authority, world, distance, quantity, server-owned recipe prices, balance, capacity, item ownership, protected items, and Coin overflow. Invalid purchases zero Count/BonusCount; invalid sales use the native invalid-slot sentinel. These rejection paths still need proof of zero mutation in game.
 
+Pricing uses `base_price + max(0, PowerLevel) * price_per_power_level`. ItemData's signed int32 level is not restricted to the 0–100 range used by player-level gates. Negative values receive the base price as an explicit economy policy. Malformed metadata or an overflowing quote excludes that product with diagnostics; it must not blank other discovered products. Invalid global economy settings still block catalog generation.
+
 ## Lifecycle and boundaries
 
 Do not construct a station component or write its OptionalProperty cache. Use the existing RuneSchema-owned component. The native standalone/listen-host menu is expected to consume the updated row; the new binding/cache path still needs gameplay verification.

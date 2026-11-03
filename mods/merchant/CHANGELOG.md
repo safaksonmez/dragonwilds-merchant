@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-dev.4 — 2026-11-03
+
+- Fix one discovered item outside the assumed 0–100 PowerLevel range aborting the entire merchant catalog with `invalid_power_level`.
+- Accept signed native int32 levels for pricing, use the base tier below zero, and check price overflow before scaling. Reject malformed or overflowing products individually without inventing fallback prices; invalid economy settings still block the catalog.
+- Log excluded product paths, raw level values, and reasons, with a bounded per-refresh diagnostic count.
+- Add signed-level, malformed-value, overflow, and partial-catalog regressions; exercise negative and above-100 levels through the full Lua catalog flow. 33 local checks plus the flow regression pass. Gameplay verification remains pending.
+
 ## 0.2.0-dev.3 — 2026-11-03
 
 - Fix catalog generation aborting with `attempt to index a number value (local 'output')`: RecipeData.ItemsCreated uses the TArray `(index, element)` callback signature, unlike TSet's single-element callback.

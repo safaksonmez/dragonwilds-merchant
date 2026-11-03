@@ -30,6 +30,8 @@ Evidence is kept in ignored local world/object dumps and logs, never distributed
 
 ## Corrected integration assumptions
 
+dev.3 progressed beyond discovery iteration but reported `invalid_power_level` during catalog pricing in the 15:42–15:48 session. The 0–100 pricing bound was an implementation assumption, not a reflected ItemData constraint. The dump identifies ItemData.PowerLevel as an IntProperty. Actual offending raw values were not captured before the tester closed the game. dev.4 prices signed native int32 levels with an explicit nonnegative economic tier, performs overflow checks, and excludes malformed/overflowing products individually. It logs product path/value/reason for remaining exclusions. This is not a claim that all future native catalog stages have passed.
+
 The dev.1 normal launch loaded the companion successfully, but RuneSchema rejected the vendor JSON and disabled the NPC with a missing-store error. LoadVendors/AddStore require Items, even for an empty store. dev.2 restores `Items: []` and a provider-owned `DWM_CoinMerchant_bootstrap_v1` row. Lua generates `DWM_CoinMerchant_v1` separately and binds the existing station before menu entry. The new cache/binding behavior still requires native verification.
 
 This UE4SS UObject binding exposes GetFullName, not GetPathName. dev.2 derives paths from the documented `Class /Package.Object:Subobject` full-name format. The original unsupported call was observed in the live log.

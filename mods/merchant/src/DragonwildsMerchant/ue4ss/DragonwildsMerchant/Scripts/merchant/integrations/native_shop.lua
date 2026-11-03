@@ -194,7 +194,12 @@ function Native.refresh(root, controller, config)
     assert(text(coin.PersistenceID) == "o-67GWCBTUeTPasJ-o_1Sw", "Coin identity mismatch")
     local facts, objects = read_items()
     local discovered = Store.merge(root, world_id, discoveries(Native.controllers(world_id), facts, objects))
-    local entries = Catalog.build(facts, discovered, config.economy)
+    local entries, rejected = Catalog.build(facts, discovered, config.economy)
+    for index = 1, math.min(5, #rejected) do
+        local entry = rejected[index]
+        print("[DragonwildsMerchant] Product excluded: " .. entry.path .. "; " .. entry.reason
+            .. "; PowerLevel=" .. entry.power_level .. "\n")
+    end
     local progress = controller:GetProgressComponent()
     remove_own_unlocks(progress)
     local row, approved = blank_row(), {}
@@ -222,7 +227,8 @@ function Native.refresh(root, controller, config)
     local readback = dt:FindRow(Native.row_name)
     assert(readback and #readback.LabeledRecipes == #row.LabeledRecipes
         and #readback.SellableItems == #row.SellableItems, "merchant row readback failed")
-    return {world_id = world_id, approved = approved, entries = #entries, sellable = #row.SellableItems}
+    return {world_id = world_id, approved = approved, entries = #entries, sellable = #row.SellableItems,
+        rejected = #rejected}
 end
 
 -- Native inventory code remains the sole owner of consumption/output, capacity

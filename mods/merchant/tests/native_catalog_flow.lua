@@ -50,7 +50,7 @@ local ok, problem = pcall(function()
     for i, name in ipairs({"PickedUp", "Learned", "Hidden"}) do
         local item = object("/Game/Gameplay/Test/"..name.."."..name)
         item.PersistenceID, item.Name = string_value(identities[i]), string_value(name)
-        item.PowerLevel, item.MaxStackSize = 0, 99
+        item.PowerLevel, item.MaxStackSize = ({-1, 150, 0})[i], 99
         item.IsQuestItem, item.IsBoundToPlayer = function() return false end, function() return false end
         items[i] = item; registry[Native.path(item)] = item
     end

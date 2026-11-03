@@ -15,7 +15,8 @@ function Dragonwilds.initialize(config, context)
         local ok, result = pcall(Native.refresh, root, controller, config)
         if ok then
             snapshot = result
-            log("Catalog ready: " .. result.entries .. " discovered offers, " .. result.sellable .. " sellable items; world=" .. result.world_id)
+            log("Catalog ready: " .. result.entries .. " discovered offers, " .. result.sellable
+                .. " sellable items, " .. result.rejected .. " rejected products; world=" .. result.world_id)
         else
             snapshot = nil
             pcall(Native.clear)

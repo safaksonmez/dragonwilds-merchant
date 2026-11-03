@@ -1,6 +1,6 @@
 # Dragonwilds Merchant
 
-**Version `0.2.0-dev.3` — experimental; gameplay regression testing is pending.**
+**Version `0.2.0-dev.4` — experimental; gameplay regression testing is pending.**
 
 The mod defines a fixed Coin Merchant in Bramblemead Valley, a marker on the M map, and an authored table/crates/barrel setup. It references the Wise Old Man model and idle animation. Coin has its own persistent ItemData identity, separate from Soul Fragments; its current appearance is inherited from the donor item.
 
@@ -10,7 +10,7 @@ The NPC's presence and Coin persistence have been observed in game. The newest c
 
 On the authority, the catalog combines native pickup history and the outputs of learned recipes across current world participants. It excludes undiscovered items and the merchant's own transient recipes from discovery. History is stored per world GUID in `Data/discovery-v1-*.txt`. Only registered, currently loaded ItemData assets are considered; unloaded content is not guaranteed.
 
-Discovered quest/bound products can appear for purchase; quest and player-bound items cannot be sold. Coin cannot be traded for itself. Stock is unlimited. Buy price is `10 + PowerLevel * 2` Coin; sell price is 40% of the buy price, rounded down, minimum 1 Coin. Maximum trade quantity is 999; authority interaction distance is 600 Unreal centimeters.
+Discovered quest/bound products can appear for purchase; quest and player-bound items cannot be sold. Coin cannot be traded for itself. Stock is unlimited. Buy price is `10 + max(0, PowerLevel) * 2` Coin; sell price is 40% of the buy price, rounded down, minimum 1 Coin. Maximum trade quantity is 999; authority interaction distance is 600 Unreal centimeters.
 
 Purchases use native recipes and sales use the native sell operation. Lua does not maintain a second wallet or repeat the native inventory exchange. Native capacity, atomicity, failure, and duplicate-request behavior still require gameplay tests. The separate domain-service tests do not prove those native guarantees.
 
