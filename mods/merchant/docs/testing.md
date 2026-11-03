@@ -33,8 +33,11 @@ The atomic inventory backend in the domain tests is a test double. Production us
 | 0.3.0-dev.1 follow-up, 16:39–16:42 | 572 recipes loaded successfully; raw row failed because custom Coin was not registered yet. Tester saw Repair/Ascension and an empty merchant. |
 | 0.3.0-dev.2 | Deferred native sales patch and explicit tab flags; local checks pass. Live reload acknowledgement, product visibility, and trading remain to be tested. |
 | 0.3.0-dev.2 follow-up, 17:08–17:10 | Native startup: vendors=4, assets=1, recipes=572, errors=0. Deferred sales were acknowledged after one pending refresh. Catalog reported 333 discovered offers, 324 sellable products, and 201 rejected products; repeat opening retained 333 offers. Tester confirmed visible items and a completed purchase. Exact Coin/item deltas and a completed sale remain unverified. |
+| 0.3.0-dev.3 | Local checks cover the 1,543-reference roster, 28 semantic categories, native banner binding, fish pickup, learned food, and hidden undiscovered stock. Gameplay validation is pending. |
 
 ## Next gameplay checks
+
+Check the Valley Trader title and banner, the Fish and Food & Ingredients sections, and an already discovered fish or meal.
 
 1. Launch normally and load an authority world. Confirm Coin inventory persistence.
 2. Find the fixed Coin Merchant through the M map; inspect the table/crates/barrel, grounding, collision, and idle animation.

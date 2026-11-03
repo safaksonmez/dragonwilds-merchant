@@ -30,6 +30,10 @@ Evidence is kept in ignored local world/object dumps and logs, never distributed
 
 ## Corrected integration assumptions
 
+### Catalog mounts and banner — 0.3.0-dev.3
+
+The build 248854 world reflection dump verifies ItemData ancestry through native and BlueprintGeneratedClass records across Game, Fishing, Agility, DowdunReach, UmbralSands, and ScornedWilderness. The roster contains 1,543 asset references and class labels. The active vendor row and RuneSchema store reference the verified Texture2D T_DeathShop_Banner. RuneSchema NpcCatalog.h defines this native texture as its default vendor banner. The active row previously omitted the texture. Game verification is pending.
+
 ### Coin registration order — 0.3.0-dev.1
 
 The 16:39–16:42 session loaded all 572 recipes without errors, but raw row creation ran before /assets registered Coin and failed to resolve SellableItem.Currency. The row was rejected; Repair/Ascension tabs appeared from the component defaults. dev.2 keeps the early row free of hard Coin references and applies its native sales patch later through RuneSchema auto-reload. MainLoader source confirms Add/Modified JSON events queue reload work for the engine tick; RawTableLoader.ReloadDocument applies existing-row patches. The generated file is reset before raw startup, and shared auto-reload must be enabled before launch. Both native component tab flags are explicitly false. This is not yet an observed successful trade.

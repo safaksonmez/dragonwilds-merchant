@@ -52,7 +52,8 @@ local old_ensure = Sales.ensure
 local ok, problem = pcall(function()
     local registry, rows, items = {}, {}, {}
     for i, name in ipairs({"PickedUp", "Learned", "Hidden"}) do
-        local item = object("/Game/Gameplay/Test/"..name.."."..name)
+        local mount = i == 1 and "/Fishing" or "/Game"
+        local item = object(mount.."/Gameplay/Test/"..name.."."..name, i == 2 and "BP_Food_C" or "ItemData")
         item.PersistenceID, item.Name = string_value(identities[i]), string_value(name)
         item.PowerLevel, item.MaxStackSize = ({-1, 150, 0})[i], 99
         item.IsQuestItem, item.IsBoundToPlayer = function() return false end, function() return false end
@@ -65,9 +66,9 @@ local ok, problem = pcall(function()
     function dt:AddRow() error("Lua DataTable writes are forbidden") end
     function dt:FindRow(name) return rows[name] end
     registry[Native.table_path] = dt
-    Content.by_item, Content.product_count = {}, 2
+    Content.by_item, Content.product_count = {}, 3
     local collection = {}
-    for i = 1, 2 do
+    for i = 1, 3 do
         local name = "RSRecipe_DWM_Buy_test"..i
         local path = "/Game/RuneSchema/DragonwildsMerchant/Recipes/"..name.."."..name
         local recipe = object(path,"RecipeData")
@@ -80,7 +81,7 @@ local ok, problem = pcall(function()
     end
     rows[Native.row_name] = {bIsVendor=true,
         LabeledRecipes=array({{Collection=collection}}),
-        SellableItems=array({{Currency=coin,CurrencyPerItem=4},{Currency=coin,CurrencyPerItem=4}})}
+        SellableItems=array({{Currency=coin,CurrencyPerItem=4},{Currency=coin,CurrencyPerItem=4},{Currency=coin,CurrencyPerItem=4}})}
     Sales.ensure = function(_, actual, expected) return actual == expected end
 
     local learned = object("/Game/Gameplay/Test/LearnedRecipe.LearnedRecipe", "RecipeData")
@@ -118,8 +119,8 @@ local ok, problem = pcall(function()
     local result = Native.refresh("unused-test-root", controller, config)
     assert(result.entries == 2 and result.sellable == 2)
     local row = assert(rows[Native.row_name])
-    assert(#row.LabeledRecipes == 1 and #row.LabeledRecipes[1].Collection == 2)
-    assert(#row.SellableItems == 2)
+    assert(#row.LabeledRecipes == 1 and #row.LabeledRecipes[1].Collection == 3)
+    assert(#row.SellableItems == 3)
     local count = 0
     for path, entry in pairs(result.approved) do
         count = count + 1
@@ -145,4 +146,4 @@ Store.merge = old_merge
 Sales.ensure = old_ensure
 Content.by_item, Content.product_count = old_content, old_count
 assert(ok, problem)
-print("PASS full Lua catalog flow: pickup + learned outputs, hidden-item gate, transient unlocks, read-only native row, reopen, revoke; forbidden Lua writes guarded")
+print("PASS full Lua catalog flow: Fishing pickup + Blueprint food learned output, hidden verified item, transient unlocks, read-only native row, reopen, revoke; forbidden Lua writes guarded")

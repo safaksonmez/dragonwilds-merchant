@@ -1,6 +1,7 @@
 {
     "Id": "coin_store",
-    "MerchantName": "Coin Merchant",
+    "MerchantName": "Valley Trader",
+    "VendorHeaderImage": "/Game/Art/UI/Craft/T_DeathShop_Banner.T_DeathShop_Banner",
     "Repairable": false,
     "Masterworkable": false,
     "DataTable": "/Game/Gameplay/World/Vendors/DT_VendorDataTable.DT_VendorDataTable",

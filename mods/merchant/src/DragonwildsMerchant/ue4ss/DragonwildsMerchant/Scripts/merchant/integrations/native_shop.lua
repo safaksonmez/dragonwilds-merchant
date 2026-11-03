@@ -89,7 +89,9 @@ local function read_items()
     for _, item in ipairs(FindAllOf("ItemData") or {}) do
         if Native.valid(item) then
             local path = Native.path(item)
-            if path ~= Native.coin_path and (path:match("^/Game/Gameplay/") or path:match("^/Game/RuneSchema/")) then
+            -- Content packs such as /Fishing own native ItemData too. Match the
+            -- verified roster, rather than assuming every item lives in /Game.
+            if path ~= Native.coin_path and Content.by_item[path] then
                 local id, name = text(item.PersistenceID), text(item.Name)
                 if #id == 22 and id:match("^[%w_-]+$") and name ~= "" and item.MaxStackSize > 0 then
                     if objects[id] and Native.path(objects[id]) ~= path then duplicates[id] = true end

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-dev.3 — 2026-11-03
+
+- Rename the shop to Valley Trader and assign the native vendor banner to its active row.
+- Replace numbered lists with 28 product categories and expand the roster to 1,543 verified references, including fish, meals, drinks, and potions.
+- Preserve discovery gating and existing recipe identities. In-game presentation and expanded catalog testing are pending.
+
 ## 0.3.0-dev.2 — 2026-11-03
 
 - Fix raw startup ordering: create the native row without hard Coin references; defer native SellableItems patching until the currency clone exists.

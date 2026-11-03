@@ -1,14 +1,14 @@
 # Dragonwilds Merchant
 
-**Version `0.3.0-dev.2` — experimental; gameplay regression testing is pending.**
+**Version `0.3.0-dev.3` — experimental; gameplay regression testing is pending.**
 
 The mod defines a fixed Coin Merchant in Bramblemead Valley, a marker on the M map, and an authored table/crates/barrel setup. It references the Wise Old Man model and idle animation. Coin has its own persistent ItemData identity, separate from Soul Fragments; its current appearance is inherited from the donor item.
 
-The NPC's presence, Coin persistence, discovered product visibility, and a purchase have been confirmed by the tester. Exact transaction amounts, selling, stall presentation, and animation playback are not yet verified. Remote co-op client catalog synchronization is not supported.
+The tester confirmed NPC presence, Coin persistence, visible offers, and a purchase on dev.2. The dev.3 banner and expanded catalog await gameplay verification. Exact transaction amounts, selling, stall presentation, and animation playback are not yet verified. Remote co-op client catalog synchronization is not supported.
 
 ## Catalog and economy
 
-On the authority, the catalog combines native pickup history and the outputs of learned recipes across current world participants. It excludes undiscovered items and the merchant's own transient recipes from discovery. History is stored per world GUID in `Data/discovery-v1-*.txt`. The native roster contains 572 ItemData references verified against build 248854. Unlisted/new-build or third-party items are excluded; the discovery gate still controls visibility.
+On the authority, the catalog combines native pickup history and the outputs of learned recipes across current world participants. It excludes undiscovered items and the merchant's own transient recipes from discovery. History is stored per world GUID in `Data/discovery-v1-*.txt`. The native roster contains 1,543 ItemData references verified against build 248854. Unlisted/new-build or third-party items are excluded; the discovery gate still controls visibility.
 
 Discovered quest/bound products can appear for purchase; quest and player-bound items cannot be sold. Coin cannot be traded for itself. Stock is unlimited. This native-content prototype uses fixed prices: **10 Coin to buy one item, 4 Coin received per sold item**. Price changes require regenerating the native recipes/row and restarting; mismatched runtime settings are rejected. Maximum trade quantity is 999; authority interaction distance is 600 Unreal centimeters.
 

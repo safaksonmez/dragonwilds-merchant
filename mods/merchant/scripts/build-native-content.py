@@ -15,6 +15,50 @@ TABLE = "/Game/Gameplay/World/Vendors/DT_VendorDataTable.DT_VendorDataTable"
 ROW = "DWM_CoinMerchant_v1"
 COIN = "/Game/RuneSchema/DragonwildsMerchant/Items/dwm_coin.dwm_coin"
 BUY, SELL = 10, 4
+TITLE = "Valley Trader"
+HEADER = "/Game/Art/UI/Craft/T_DeathShop_Banner.T_DeathShop_Banner"
+CATEGORIES = (
+    "Melee Weapons", "Ranged Weapons", "Magic Weapons", "Headgear", "Body Armour", "Leg Armour",
+    "Capes", "Shields", "Jewellery", "Tools", "Ammunition", "Runes", "Fish", "Food & Ingredients",
+    "Drinks", "Potions", "Seeds & Farming", "Metals & Minerals", "Wood & Plants", "Animal Materials",
+    "Textiles", "Crafting Materials", "Blueprints", "Vestiges", "Patterns", "Skill Tomes",
+    "Quest Items & Keys", "Miscellaneous",
+)
+
+
+def category(path, kind):
+    lower = path.lower()
+    if "/quest/" in lower or "/resources/key/" in lower: return "Quest Items & Keys"
+    if kind == "ConsumableRecipeUnlocker":
+        return "Patterns" if "/cape/" in lower or "/patterns/" in lower else "Vestiges"
+    if "/plans/" in lower or "/decorations/" in lower: return "Blueprints"
+    if "/tomes/" in lower or kind == "JournalItemData": return "Skill Tomes"
+    if kind == "PotionItemData": return "Potions"
+    if kind == "DrinkItemData": return "Drinks"
+    if "/fishes/" in lower or "/resources/fish/" in lower: return "Fish"
+    if kind == "FoodItemData": return "Food & Ingredients"
+    if kind in {"SeedHeldEquipmentData", "HeldTreeSeedData"}: return "Seeds & Farming"
+    if kind in {"RangedAmmoData", "FishingBaitAmmoData"}: return "Ammunition"
+    if kind == "MagicAmmoData": return "Runes"
+    if kind == "ShieldData": return "Shields"
+    if kind == "TrinketItemData" or "/jewell" in lower or "/jewler" in lower: return "Jewellery"
+    if kind == "WearableEquipmentData":
+        if "/cape/" in lower: return "Capes"
+        if "/head/" in lower: return "Headgear"
+        if "/body/" in lower: return "Body Armour"
+        return "Leg Armour"
+    if kind == "HeldEquipmentData":
+        if any(f"/{tool}/" in lower for tool in ("pickaxe", "hatchet", "torch", "farming")): return "Tools"
+        if "/bow/" in lower or "/crossbow/" in lower: return "Ranged Weapons"
+        if "/staff/" in lower or "/wand/" in lower: return "Magic Weapons"
+        return "Melee Weapons"
+    if kind in {"SpadeToolEquipmentData", "FishingRodHeldEquipmentData", "HarvestToolEquipmentData", "HeldContainerEquipmentData", "WhetstoneItemData"}: return "Tools"
+    if "/resources/metal/" in lower or "/metal/" in lower or "/resources/mineral/" in lower: return "Metals & Minerals"
+    if any(f"/{part}/" in lower for part in ("plant", "herb", "wood", "agility")): return "Wood & Plants"
+    if "/animal/" in lower: return "Animal Materials"
+    if "/textiles/" in lower: return "Textiles"
+    if "/resources/" in lower or kind == "FuelItemData" or "/components/" in lower: return "Crafting Materials"
+    return "Miscellaneous"
 
 
 def recipe_path(key):
@@ -27,12 +71,15 @@ def recipe_path(key):
 
 
 def generate():
-    document = json.loads((ROOT / "assets" / "native-item-paths.json").read_text())
+    document = json.loads((ROOT / "assets" / "native-item-paths.json").read_text(encoding="utf-8"))
     paths = document["paths"]
+    kinds = document["kinds"]
     assert paths == sorted(set(paths)) and len(paths) > 0
-    recipes, groups, sales, manifest = {}, [], [], []
-    for index, item in enumerate(paths):
-        assert re.fullmatch(r"/Game/Gameplay/[A-Za-z0-9_./-]+\.[A-Za-z0-9_-]+", item), item
+    assert set(kinds) == set(paths)
+    recipes, sales, manifest = {}, [], []
+    grouped = {label: [] for label in CATEGORIES}
+    for item in paths:
+        assert re.fullmatch(r"/(?:" + "|".join(document["mounts"]) + r")/Gameplay/[A-Za-z0-9_./-]+\.[A-Za-z0-9_-]+", item), item
         assert item != COIN
         digest = hashlib.sha256(("DragonwildsMerchant/native-buy/v1/" + item).encode()).digest()
         key = "DWM_Buy_" + digest[:8].hex()
@@ -50,12 +97,12 @@ def generate():
                 "MinProcessingTime": 0, "MaxProcessingTime": 0, "CraftQuantityMultiplier": 1,
             },
         }
-        if index % 100 == 0:
-            groups.append({"Label": f"Items {len(groups) + 1}", "Collection": []})
-        groups[-1]["Collection"].append(path)
+        grouped[category(item, kinds[item])].append(path)
         sales.append({"ItemData": item, "Currency": COIN, "CurrencyPerItem": SELL, "ReputationPerItem": 0})
         manifest.append(f'    ["{item}"] = {{path = "{path}", id = "{identity}", buy_price = {BUY}, sell_price = {SELL}}},')
-    row = {"DisplayNameOverride": "Coin Merchant", "bIsVendor": True,
+    groups = [{"Label": label, "Collection": refs} for label, refs in grouped.items() if refs]
+    assert all(len(group["Collection"]) <= 128 for group in groups), "Split oversized categories by meaning"
+    row = {"DisplayNameOverride": TITLE, "VendorHeaderImage": HEADER, "bIsVendor": True,
            "bHaveRepairOption": False, "bHaveMasterworkOption": False,
            "LabeledRecipes": groups, "SellableItems": []}
     for folder in ["recipes", "raw"]:

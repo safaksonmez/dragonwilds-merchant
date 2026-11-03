@@ -12,7 +12,7 @@
 
 ## Runtime architecture
 
-RuneSchema creates the Coin asset, merchant, native recipes, and merchant row. Generated `recipes/20-merchant-recipes.json` and `raw/20-merchant-row.json` reference 572 ItemData paths verified in build 248854. No cooked assets or per-player discovery data ship. Prices are fixed at 10 Coin buy / 4 Coin sell in this prototype; regenerate native content when changing prices.
+RuneSchema creates the Coin asset, merchant, native recipes, and merchant row. Generated `recipes/20-merchant-recipes.json` and `raw/20-merchant-row.json` reference 1,543 ItemData paths verified in build 248854. The catalog uses 28 product categories and the Valley Trader row points to the native vendor banner. No cooked assets or per-player discovery data ship. Prices are fixed at 10 Coin buy / 4 Coin sell in this prototype; regenerate native content when changing prices.
 
 The provider creates an empty bootstrap row from mandatory `Items: []`. Its `VendorProperties.CraftingDataRowHandle` binds the component to the separate native-authored `DWM_CoinMerchant_v1` row. Lua validates this binding but never writes the detached row or its handle.
 

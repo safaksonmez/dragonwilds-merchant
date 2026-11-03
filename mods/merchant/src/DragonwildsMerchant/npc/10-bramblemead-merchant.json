@@ -1,7 +1,7 @@
 {
     "Id": "bramblemead_merchant",
     "Type": "AI",
-    "DisplayName": "Coin Merchant",
+    "DisplayName": "Valley Trader",
     "VendorID": "coin_store",
     "VisualSource": "/Game/Gameplay/NPCs/BP_BaseInteractableNPC.BP_BaseInteractableNPC_C",
     "Mesh": "/Game/Art/Skeleton/NPC/Humanoid/WiseOldMan_01/SK_WiseOldMan_01.SK_WiseOldMan_01",
