@@ -7,6 +7,9 @@
     "RowName": "DWM_CoinMerchant_bootstrap_v1",
     "Items": [],
     "VendorProperties": {
+        "bHaveRepairOption": false,
+        "bHaveMasterworkOption": false,
+        "bIsVendor": true,
         "CraftingDataRowHandle": {
             "DataTable": "/Game/Gameplay/World/Vendors/DT_VendorDataTable.DT_VendorDataTable",
             "RowName": "DWM_CoinMerchant_v1"

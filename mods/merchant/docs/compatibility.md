@@ -30,6 +30,10 @@ Evidence is kept in ignored local world/object dumps and logs, never distributed
 
 ## Corrected integration assumptions
 
+### Coin registration order — 0.3.0-dev.1
+
+The 16:39–16:42 session loaded all 572 recipes without errors, but raw row creation ran before /assets registered Coin and failed to resolve SellableItem.Currency. The row was rejected; Repair/Ascension tabs appeared from the component defaults. dev.2 keeps the early row free of hard Coin references and applies its native sales patch later through RuneSchema auto-reload. MainLoader source confirms Add/Modified JSON events queue reload work for the engine tick; RawTableLoader.ReloadDocument applies existing-row patches. The generated file is reset before raw startup, and shared auto-reload must be enabled before launch. Both native component tab flags are explicitly false. This is not yet an observed successful trade.
+
 ### Installed Lua row writer failure and native-content migration
 
 In dev.4, 534 shop recipes reached the native unlock set, but the catalog failed its row readback. The F9 diagnostic observed the Lua-created row as `bIsVendor=false`, groups=0, sales=0, despite nonempty AddRow input; the provider-created bootstrap row correctly reported vendor=true. Direct detached-row assignment then crashed with access violation `0xc0000005` in `UE4SS.dll+0xc6e189` on 2026-11-03 at 16:08. The diagnostic command was replaced with a no-op. No further detached-row mutation is used.

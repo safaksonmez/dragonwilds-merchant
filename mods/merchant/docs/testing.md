@@ -9,6 +9,7 @@
 - Packaging checks allowed paths, JSON, and ZIP entry/source SHA256 equality. No DLLs, game assets, saves, dumps, local paths, development grants, or runtime discovery journals enter the archive.
 - Local deployment backs up the add-on and verifies installed file hashes. This is not a Vortex deployment test.
 - Native content checks validate 572 product/recipe references, matching buy/sell amounts, unique row membership, and discovery-safe defaults. The Lua flow regression throws on any attempted DataTable write or recipe construction, tests read-only row/recipe validation, and verifies availability revocation.
+- Deferred-sales file tests cover stale-file reset, the explicit shared-setting dependency, no mutation of settings from Lua, one-shot patch requests, and acknowledgement. The early raw row is checked to have no hard Coin dependency; sale references reside in the deferred template.
 
 ```powershell
 python -m pip install --target mods/merchant/local/python -r mods/merchant/requirements-dev.txt
@@ -29,6 +30,8 @@ The atomic inventory backend in the domain tests is a test double. Production us
 | dev.4 | Signed-level pricing and per-product rejection; local checks and full Lua flow pass. In-game confirmation is pending. |
 | dev.4 follow-up, 16:05–16:08 | 534 recipes reached native unlocks; Lua AddRow produced an empty/default row. A detached-row write diagnostic crashed UE4SS. Diagnostic disabled; no further detached-row mutation permitted. |
 | 0.3.0-dev.1 | RuneSchema-native row/recipe generation and read-only Lua catalog integration; local checks pass, game load/menu/trade verification pending. |
+| 0.3.0-dev.1 follow-up, 16:39–16:42 | 572 recipes loaded successfully; raw row failed because custom Coin was not registered yet. Tester saw Repair/Ascension and an empty merchant. |
+| 0.3.0-dev.2 | Deferred native sales patch and explicit tab flags; local checks pass. Live reload acknowledgement, product visibility, and trading remain to be tested. |
 
 ## Next gameplay checks
 

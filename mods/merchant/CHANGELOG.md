@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-dev.2 — 2026-11-03
+
+- Fix raw startup ordering: create the native row without hard Coin references; defer native SellableItems patching until the currency clone exists.
+- Use RuneSchema's supported, game-thread file reload with a mod-owned generated patch, startup reset, bounded acknowledgement retries, and currency/price readback. This requires the documented shared `enableAutoReload=true` setting; no shared config enters the ZIP.
+- Explicitly disable Repair/Ascension on the native component as well as the row.
+- Add deferred-file lifecycle tests, startup dependency checks, and package checks preventing early hard Coin references. Native gameplay verification remains pending.
+
 ## 0.3.0-dev.1 — 2026-11-03
 
 - Replace Lua DataTable writes and runtime recipe construction with RuneSchema-authored `/raw` and `/recipes` content. The installed Lua binding left AddRow(table) fields empty; direct detached-row mutation crashed UE4SS during diagnosis. That diagnostic is disabled.

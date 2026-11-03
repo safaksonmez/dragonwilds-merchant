@@ -47,6 +47,8 @@ local previous = {}; for _, name in ipairs(globals) do previous[name] = _G[name]
 local Content = require("merchant.data.native_content")
 local old_content, old_count = Content.by_item, Content.product_count
 local old_merge = Store.merge
+local Sales = require("merchant.integrations.deferred_sales")
+local old_ensure = Sales.ensure
 local ok, problem = pcall(function()
     local registry, rows, items = {}, {}, {}
     for i, name in ipairs({"PickedUp", "Learned", "Hidden"}) do
@@ -77,7 +79,9 @@ local ok, problem = pcall(function()
         collection[#collection+1] = parameter(recipe)
     end
     rows[Native.row_name] = {bIsVendor=true,
-        LabeledRecipes=array({{Collection=collection}}), SellableItems=array({{}, {}})}
+        LabeledRecipes=array({{Collection=collection}}),
+        SellableItems=array({{Currency=coin,CurrencyPerItem=4},{Currency=coin,CurrencyPerItem=4}})}
+    Sales.ensure = function(_, actual, expected) return actual == expected end
 
     local learned = object("/Game/Gameplay/Test/LearnedRecipe.LearnedRecipe", "RecipeData")
     learned.ItemsCreated = array({{ItemData=items[2], Count=1}})
@@ -138,6 +142,7 @@ local ok, problem = pcall(function()
 end)
 for _, name in ipairs(globals) do _G[name] = previous[name] end
 Store.merge = old_merge
+Sales.ensure = old_ensure
 Content.by_item, Content.product_count = old_content, old_count
 assert(ok, problem)
 print("PASS full Lua catalog flow: pickup + learned outputs, hidden-item gate, transient unlocks, read-only native row, reopen, revoke; forbidden Lua writes guarded")

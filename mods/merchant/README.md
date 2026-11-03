@@ -1,6 +1,6 @@
 # Dragonwilds Merchant
 
-**Version `0.3.0-dev.1` â€” experimental; gameplay regression testing is pending.**
+**Version `0.3.0-dev.2` — experimental; gameplay regression testing is pending.**
 
 The mod defines a fixed Coin Merchant in Bramblemead Valley, a marker on the M map, and an authored table/crates/barrel setup. It references the Wise Old Man model and idle animation. Coin has its own persistent ItemData identity, separate from Soul Fragments; its current appearance is inherited from the donor item.
 
@@ -18,6 +18,7 @@ Purchases use native recipes and sales use the native sell operation. Lua does n
 
 - A compatible [Dragonwilds UE4SS distribution](https://www.nexusmods.com/runescapedragonwilds/mods/4). Local research used `3.0.1 Beta f6d5f942`.
 - [RuneSchema 0.8.0.3](https://github.com/gh0sted5456-us/RuneSchema/releases/tag/0.8.0.3), installed separately.
+- Set `enableAutoReload = true` in RuneSchema's `settings/settings.ini` before launching. This is required to apply the mod-owned sales patch after Coin registration. RuneSchema auto-reload is shared: edits to other reloadable mod files can also apply live. The mod does not change this setting itself or ship shared settings.
 - For Vortex: the [Dragonwilds game extension](https://www.nexusmods.com/site/mods/1273), with RuneSchema JSON package support. A clean Vortex installation has not been tested.
 
 ## Build the install archive
@@ -44,6 +45,7 @@ DragonwildsMerchant/
     Scripts/main.lua
     Scripts/merchant/...
     Data/README.txt
+    Data/native-sales.json
 ```
 
 `src/DragonwildsMerchant` is the single runtime source. `mod.json` is repository metadata, not a loader manifest. Packaging verifies allowed paths, JSON, the required storefront contract, and ZIP entry SHA256 values. It does not prove native game behavior or Vortex compatibility.
@@ -62,11 +64,11 @@ Start the game normally; PowerShell is not required to launch it. Look for `[Dra
 
 ## Configure, update, and remove
 
-Settings live in `ue4ss/DragonwildsMerchant/Scripts/merchant/config.lua`. Authored NPC/stall positions are in the parent `npc/*.json` files. Native content is generated from `assets/native-item-paths.json` with `scripts/build-native-content.py`; only verified asset references ship. The Lua runtime reads the native row and recipe fields and manages discovery availability; it never creates/writes DataTable rows or constructs recipe objects. Restart after changing runtime files or definitions.
+Settings live in `ue4ss/DragonwildsMerchant/Scripts/merchant/config.lua`. Authored NPC/stall positions are in the parent `npc/*.json` files. Native content is generated from `assets/native-item-paths.json` with `scripts/build-native-content.py`; only verified asset references ship. The Lua runtime reads native fields and manages discovery availability; it never directly writes DataTable rows or constructs recipe objects. After Coin registration it writes its generated `raw/90-dwm-runtime-sales.json`, consumed by RuneSchema's native game-thread reload. Up to eight bounded retries wait for native acknowledgement. Restart after changing runtime files or definitions.
 
 Before updating, back up the config and `ue4ss/DragonwildsMerchant/Data/discovery-v1-*.txt` journals. Config changes are not merged automatically; compare your settings with the new defaults. Runtime journals are not included in the install ZIP. Move the matching discovery journal when moving a world to another host.
 
-To remove: close the game, back up config/journals, then uninstall and deploy through Vortex or remove only the manually installed parent folder. Keep shared RuneSchema/UE4SS files and other mods. Coin is a custom asset and cannot resolve without this mod; retain the mod for saves containing Coin, or remove/spend the custom item first and keep a save backup.
+To remove: close the game, back up config/journals, then uninstall and deploy through Vortex or remove only the manually installed parent folder. Remove the generated `raw/90-dwm-runtime-sales.json` if Vortex leaves it behind. Keep shared RuneSchema/UE4SS files and other mods. Coin is a custom asset and cannot resolve without this mod; retain the mod for saves containing Coin, or remove/spend the custom item first and keep a save backup.
 
 ## Development tools
 
@@ -74,7 +76,9 @@ To remove: close the game, back up config/journals, then uninstall and deploy th
 pwsh -NoProfile -File mods/merchant/scripts/deploy-local.ps1 -GameRoot '<game-root>'
 ```
 
-The deployment tool requires the game to be closed, backs up the current add-on, preserves runtime journals, and verifies installed hashes. It does not control the game or modify shared loader settings.
+For a development installation that also enables the required shared setting with a backup, add `-EnableDeferredSales` while the game is closed.
+
+The deployment tool requires the game to be closed, backs up the current add-on, preserves runtime journals, and verifies installed hashes. It does not control the game. Shared settings are preserved unless the explicit `-EnableDeferredSales` switch enables auto-reload with a backup.
 
 The F8/F9 reflection probe and offline Coin grant tool are development utilities and never enter the install ZIP. The public runtime does not grant free Coin. See [design](docs/design.md), [compatibility](docs/compatibility.md), [testing](docs/testing.md), and [changelog](CHANGELOG.md).
 

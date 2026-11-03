@@ -1,6 +1,7 @@
 local Catalog = require("merchant.services.native_catalog")
 local Content = require("merchant.data.native_content")
 local Store = require("merchant.integrations.discovery_store")
+local Sales = require("merchant.integrations.deferred_sales")
 local V = require("merchant.domain.values")
 local Native = {}
 
@@ -171,11 +172,17 @@ function Native.refresh(root, controller, config)
     local discovered = Store.merge(root, world_id, discoveries(Native.controllers(world_id), facts, objects))
     local entries, rejected = Catalog.build(facts, discovered, config.economy)
     local row = dt:FindRow(Native.row_name)
-    assert(row and row.bIsVendor and #row.SellableItems == Content.product_count,
+    assert(row and row.bIsVendor,
         "RuneSchema native merchant row is missing or incomplete")
+    assert(Sales.ensure(root, #row.SellableItems, Content.product_count), "native_sales_pending")
     local count = 0
     row.LabeledRecipes:ForEach(function(_, group) count = count + #group:get().Collection end)
     assert(count == Content.product_count, "RuneSchema native merchant categories are incomplete")
+    row.SellableItems:ForEach(function(_, value)
+        local sale = value:get()
+        assert(Native.valid(sale.Currency) and Native.path(sale.Currency) == Native.coin_path
+            and sale.CurrencyPerItem == Content.sell_price, "native Coin sale currency/price mismatch")
+    end)
     local progress = controller:GetProgressComponent()
     remove_own_unlocks(progress)
     local approved, total, sellable = {}, 0, 0

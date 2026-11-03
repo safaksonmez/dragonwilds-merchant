@@ -16,6 +16,8 @@ RuneSchema creates the Coin asset, merchant, native recipes, and merchant row. G
 
 The provider creates an empty bootstrap row from mandatory `Items: []`. Its `VendorProperties.CraftingDataRowHandle` binds the component to the separate native-authored `DWM_CoinMerchant_v1` row. Lua validates this binding but never writes the detached row or its handle.
 
+The early raw row contains soft recipe references and no hard Coin references. After the /assets currency clone is ready, Lua copies its packaged sales template to the mod-owned `raw/90-dwm-runtime-sales.json`. RuneSchema's native auto-reload consumes that file on its engine tick. The companion clears that generated file before startup raw parsing, requires `enableAutoReload=true`, and waits for exact native sale counts/currencies/prices before granting shop availability. Eight 500 ms retries are the limit. No Lua UObject row mutation is used. Repair and Masterwork flags are false on both the row and the component.
+
 Lua reads pickup/learned-recipe history, persists the world discovery union, verifies native recipe identities/prices/outputs, and marks only discovered products available. Native shop recipes enter `RecipesUnlockedThatShouldNotPersist` before `RecipesUnlocked`; fail-closed cleanup revokes only owned shop availability. Vanilla learned recipes remain untouched. The full native row does not by itself grant recipe unlocks (`Unlock: false`, `bIgnoreAutomaticUnlocks: true`).
 
 Native InventoryController owns the exchange. Lua guards authority, world, distance, quantity, native prices, balance, capacity, ownership, protected items, and Coin overflow. Count=0 / invalid-slot rejection still requires native no-mutation regression testing.

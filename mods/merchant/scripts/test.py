@@ -2,6 +2,7 @@
 from pathlib import Path
 import json
 import importlib.util
+import tempfile
 import sys
 
 MOD_ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +35,8 @@ assert isinstance(store.get("Items"), list), "RuneSchema LoadVendors requires It
 assert store["Items"] == [], "Only live world discovery may populate the catalog"
 assert store["RowName"] == "DWM_CoinMerchant_bootstrap_v1"
 assert store["VendorProperties"]["CraftingDataRowHandle"]["RowName"] == "DWM_CoinMerchant_v1"
+assert store["VendorProperties"]["bHaveRepairOption"] is False
+assert store["VendorProperties"]["bHaveMasterworkOption"] is False
 print("RuneSchema storefront binding contract checked", flush=True)
 
 spec = importlib.util.spec_from_file_location("native_builder", MOD_ROOT / "scripts" / "build-native-content.py")
@@ -42,12 +45,18 @@ spec.loader.exec_module(builder)
 recipes = json.loads((content / "recipes" / "20-merchant-recipes.json").read_text())
 row = json.loads((content / "raw" / "20-merchant-row.json").read_text())[builder.TABLE][builder.ROW]
 paths = json.loads((MOD_ROOT / "assets" / "native-item-paths.json").read_text())["paths"]
-assert len(recipes) == len(row["SellableItems"]) == len(paths) == 572
+sales_document = json.loads((content / "ue4ss" / "DragonwildsMerchant" / "Data" / "native-sales.json").read_text())
+late_row = sales_document[builder.TABLE][builder.ROW]
+assert late_row["$PatchOnly"] is True
+sales = late_row["SellableItems"]
+assert row["SellableItems"] == [], "Early raw row must not depend on the later Coin clone"
+assert len(recipes) == len(sales) == len(paths) == 572
 assert row["bIsVendor"] is True
 refs = [ref for group in row["LabeledRecipes"] for ref in group["Collection"]]
 assert set(refs) == {builder.recipe_path(key) for key in recipes}
 assert len(refs) == len(set(refs)) == len(recipes)
-assert {sale["ItemData"] for sale in row["SellableItems"]} == set(paths)
+assert {sale["ItemData"] for sale in sales} == set(paths)
+assert all(sale["Currency"] == builder.COIN and sale["CurrencyPerItem"] == builder.SELL for sale in sales)
 for recipe in recipes.values():
     assert recipe["Unlock"] is False
     fields = recipe["Properties"]
@@ -59,3 +68,42 @@ for source in scripts.rglob("*.lua"):
     text = source.read_text()
     assert ":AddRow(" not in text and "StaticConstructObject(" not in text, source
 print("572 native recipe/row references, discovery-safe defaults, and forbidden Lua mutation checks passed", flush=True)
+
+test_cache = MOD_ROOT / "local" / "test-sandboxes"
+test_cache.mkdir(parents=True, exist_ok=True)
+assert test_cache.resolve().is_relative_to(MOD_ROOT.resolve())
+with tempfile.TemporaryDirectory(prefix="dwm-sales-test-", dir=test_cache) as directory:
+    assert Path(directory).resolve().is_relative_to(test_cache.resolve())
+    framework = Path(directory) / "RuneSchema"
+    parent = framework / "mods" / "DragonwildsMerchant"
+    package = parent / "ue4ss" / "DragonwildsMerchant"
+    (framework / "settings").mkdir(parents=True)
+    (parent / "raw").mkdir(parents=True)
+    (package / "Data").mkdir(parents=True)
+    ini = framework / "settings" / "settings.ini"
+    ini.write_text("[RuneSchema]\nenableAutoReload = false\n", encoding="utf-8")
+    runtime_file = parent / "raw" / "90-dwm-runtime-sales.json"
+    runtime_file.write_text("{\"stale\":true}", encoding="utf-8")
+    (package / "Data" / "native-sales.json").write_text(json.dumps(sales_document), encoding="utf-8")
+    runtime.execute('''
+        local root = ...
+        local sales = require("merchant.integrations.deferred_sales")
+        local ok, reason = pcall(sales.prepare, root)
+        assert(not ok and tostring(reason):find("enableAutoReload=true",1,true))
+        local f = assert(io.open(root.."/../../raw/90-dwm-runtime-sales.json","rb"))
+        assert(f:read("*a") == "{}\\n"); f:close()
+    ''', package.as_posix())
+    assert ini.read_text() == "[RuneSchema]\nenableAutoReload = false\n"
+    ini.write_text("[RuneSchema]\nenableAutoReload = true\n", encoding="utf-8")
+    runtime.execute('''
+        local root = ...
+        local sales = require("merchant.integrations.deferred_sales")
+        sales.prepare(root)
+        assert(not sales.ensure(root,0,572))
+        local f = assert(io.open(root.."/../../raw/90-dwm-runtime-sales.json","rb"))
+        assert(f:read("*a"):find('"$DWMRuntimeSales"',1,true)); f:close()
+        assert(not sales.ensure(root,0,572))
+        assert(sales.ensure(root,572,572))
+    ''', package.as_posix())
+    assert ini.read_text() == "[RuneSchema]\nenableAutoReload = true\n"
+print("Deferred Coin sales: startup reset, explicit dependency, one-shot request, native count acknowledgement passed", flush=True)

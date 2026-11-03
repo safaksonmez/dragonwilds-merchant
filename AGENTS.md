@@ -27,7 +27,7 @@ mods/<slug>/
     npc/*.json          # Sabit NPC ve tezgâh
     vendors/*.json
     ue4ss/<ModId>/Scripts/main.lua
-    ue4ss/<ModId>/Data/ # Yalnızca README paketlenir; dünya keşifleri çalışma zamanında
+    ue4ss/<ModId>/Data/ # README ve native-sales şablonu; dünya keşifleri çalışma zamanında
   docs/                 # Tasarım, araştırma, kurulum ve test notları
   assets/               # Kaynak görseller; otomatik paketlenmez
   scripts/              # Modun yerel geliştirme/paketleme araçları

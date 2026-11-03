@@ -19,7 +19,8 @@ $sourceRoot = Join-Path $modRoot 'src'
 $sourceMod = Join-Path $sourceRoot $manifest.id
 foreach ($required in @('assets/10-coin.json', 'npc/10-bramblemead-merchant.json', 'npc/20-bramblemead-stall.json',
     'vendors/10-coin-store.json', 'recipes/20-merchant-recipes.json', 'raw/20-merchant-row.json',
-    'ue4ss/DragonwildsMerchant/Scripts/main.lua', 'ue4ss/DragonwildsMerchant/Data/README.txt')) {
+    'ue4ss/DragonwildsMerchant/Scripts/main.lua', 'ue4ss/DragonwildsMerchant/Data/README.txt',
+    'ue4ss/DragonwildsMerchant/Data/native-sales.json')) {
     if (-not (Test-Path -LiteralPath (Join-Path $sourceMod $required) -PathType Leaf)) {
         throw "Required source file missing: $required"
     }
@@ -43,7 +44,8 @@ foreach ($file in $files) {
     $relative = $file.FullName.Substring($sourcePrefix.Length).Replace('\', '/')
     if ($relative -cnotmatch '^DragonwildsMerchant/(assets|npc|vendors|recipes|raw)/[A-Za-z0-9_-]+\.json$' -and
         $relative -cnotmatch '^DragonwildsMerchant/ue4ss/DragonwildsMerchant/Scripts/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.lua$' -and
-        $relative -cne 'DragonwildsMerchant/ue4ss/DragonwildsMerchant/Data/README.txt') {
+        $relative -cne 'DragonwildsMerchant/ue4ss/DragonwildsMerchant/Data/README.txt' -and
+        $relative -cne 'DragonwildsMerchant/ue4ss/DragonwildsMerchant/Data/native-sales.json') {
         throw "Unexpected distributable file: $relative. Keep non-runtime files outside src."
     }
     if ($file.Extension -eq '.json') { $null = Get-Content -LiteralPath $file.FullName -Raw | ConvertFrom-Json }

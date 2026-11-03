@@ -1,4 +1,5 @@
 local Native = require("merchant.integrations.native_shop")
+local Sales = require("merchant.integrations.deferred_sales")
 local Dragonwilds = {}
 local started, queued, generation = false, false, 0
 local hooks, snapshot = {}, nil
@@ -11,16 +12,24 @@ function Dragonwilds.initialize(config, context)
         return false, "RuneSchema Lua companion context is missing; install the complete parent add-on."
     end
     local root = context.Root
+    local prepared, prepare_error = pcall(Sales.prepare, root)
+    if not prepared then return false, tostring(prepare_error) end
+    local queue, sales_retries = nil, 0
     local function refresh(controller)
         local ok, result = pcall(Native.refresh, root, controller, config)
         if ok then
             snapshot = result
+            sales_retries = 0
             log("Catalog ready: " .. result.entries .. " discovered offers, " .. result.sellable
                 .. " sellable items, " .. result.rejected .. " rejected products; world=" .. result.world_id)
         else
             snapshot = nil
             pcall(Native.clear)
             log("Catalog blocked: " .. tostring(result))
+            if tostring(result):find("native_sales_pending", 1, true) and sales_retries < 8 then
+                sales_retries = sales_retries + 1
+                queue()
+            end
         end
         return ok
     end
@@ -31,7 +40,7 @@ function Dragonwilds.initialize(config, context)
         local controllers = Native.controllers()
         if controllers[1] then refresh(controllers[1]) end
     end
-    local function queue()
+    queue = function()
         if queued then return end
         queued = true
         local current = generation
@@ -103,6 +112,7 @@ function Dragonwilds.initialize(config, context)
         hook("/Script/Dominion.ProgressComponent:UnlockRecipes", function() end, queue)
         RegisterInitGameStatePostHook(function()
             generation, queued, snapshot = generation + 1, false, nil
+            sales_retries = 0
             pcall(Native.clear)
             queue()
         end)

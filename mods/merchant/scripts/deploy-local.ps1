@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param([Parameter(Mandatory = $true)][string]$GameRoot)
+param(
+    [Parameter(Mandatory = $true)][string]$GameRoot,
+    [switch]$EnableDeferredSales
+)
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if (@(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like '*Dragonwilds*' }).Count -gt 0) {
@@ -19,6 +22,23 @@ if (Test-Path -LiteralPath (Join-Path $modsRoot 'DragonwildsMerchant')) {
 }
 $source = [System.IO.Path]::GetFullPath((Join-Path $modRoot 'src/DragonwildsMerchant'))
 $destination = Join-Path $modsRoot 'RuneSchema/mods/DragonwildsMerchant'
+if ($EnableDeferredSales) {
+    $settings = Join-Path $modsRoot 'RuneSchema/settings/settings.ini'
+    $text = [System.IO.File]::ReadAllText($settings)
+    $pattern = '(?m)^(\s*enableAutoReload\s*=\s*)false(\s*(?:;[^\r\n]*)?)$'
+    $matches = [regex]::Matches($text, $pattern)
+    if ($matches.Count -eq 1) {
+        $settingsBackup = Join-Path $modRoot ('local/backups/runeschema-settings-' + (Get-Date -Format 'yyyyMMdd-HHmmss-ffff') + '.ini')
+        New-Item -ItemType Directory -Path (Split-Path -Parent $settingsBackup) -Force | Out-Null
+        Copy-Item -LiteralPath $settings -Destination $settingsBackup
+        $updated = [regex]::Replace($text, $pattern, '${1}true${2}')
+        [System.IO.File]::WriteAllText($settings, $updated, [System.Text.UTF8Encoding]::new($false))
+        Write-Output "Enabled shared RuneSchema auto-reload for deferred sales. Settings backup: $settingsBackup"
+    }
+    elseif ($text -notmatch '(?m)^\s*enableAutoReload\s*=\s*true\s*$') {
+        throw 'Cannot safely identify the RuneSchema auto-reload setting.'
+    }
+}
 if (Test-Path -LiteralPath $destination) {
     $backup = Join-Path $modRoot ('local/backups/before-addon-update-' + (Get-Date -Format 'yyyyMMdd-HHmmss-ffff'))
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
@@ -37,4 +57,4 @@ foreach ($file in $files) {
     }
 }
 Write-Output "Deployed and hash-verified $($files.Count) source files: $destination"
-Write-Output 'Existing Data journals and RuneSchema settings were preserved. Full restart required. Gameplay not tested by this script.'
+Write-Output 'Existing Data journals were preserved. Shared settings change only with -EnableDeferredSales. Full restart required. Gameplay not tested by this script.'
